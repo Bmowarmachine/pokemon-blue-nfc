@@ -1,4 +1,4 @@
-const CACHE = "nfc-games-v3";
+const CACHE = "nfc-games-v4";
 const ASSETS = [
   "./",
   "./index.html",

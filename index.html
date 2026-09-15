@@ -1,0 +1,76 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+  <meta name="theme-color" content="#0b0d12">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <title>NFC Games</title>
+  <link rel="manifest" href="./manifest.webmanifest">
+  <link rel="stylesheet" href="./styles.css">
+</head>
+<body>
+  <main id="app">
+    <section id="catalogView" class="view" hidden>
+      <div class="hero">
+        <p class="eyebrow">NFC GAME LIBRARY</p>
+        <h1>Acerca un llavero. Abre un juego.</h1>
+        <p class="subtitle">
+          Cada NFC apunta a este sitio con un identificador distinto.
+        </p>
+      </div>
+
+      <div id="catalog" class="catalog" aria-live="polite"></div>
+    </section>
+
+    <section id="loadingView" class="view centered" hidden>
+      <div class="loader" aria-hidden="true"></div>
+      <p class="eyebrow">CARGANDO</p>
+      <h1 id="loadingTitle">Preparando juego…</h1>
+      <p id="loadingSubtitle" class="subtitle">Un momento.</p>
+    </section>
+
+    <section id="setupView" class="view centered" hidden>
+      <div id="setupIcon" class="game-icon">🎮</div>
+      <p class="eyebrow">JUEGO CONFIGURADO</p>
+      <h1 id="setupTitle">Juego</h1>
+      <p id="setupText" class="subtitle"></p>
+
+      <div class="info-card">
+        <div>
+          <span class="label">ID NFC</span>
+          <strong id="setupId"></strong>
+        </div>
+        <div>
+          <span class="label">Sistema</span>
+          <strong id="setupSystem"></strong>
+        </div>
+      </div>
+
+      <p class="fine">
+        Para que se abra automáticamente en cualquier teléfono,
+        este juego necesita una fuente de ROM autorizada y accesible por HTTPS.
+      </p>
+
+      <a class="secondary-button" href="./">Volver al catálogo</a>
+    </section>
+
+    <section id="errorView" class="view centered" hidden>
+      <div class="game-icon">⚠️</div>
+      <p class="eyebrow">ERROR</p>
+      <h1>No se pudo abrir el juego</h1>
+      <p id="errorText" class="subtitle"></p>
+      <a class="secondary-button" href="./">Volver al catálogo</a>
+    </section>
+
+    <section id="gameView" hidden>
+      <div id="game"></div>
+      <button id="exitGame" class="exit-button" type="button" aria-label="Salir del juego">×</button>
+    </section>
+  </main>
+
+  <script src="./games.js"></script>
+  <script src="./app.js"></script>
+</body>
+</html>

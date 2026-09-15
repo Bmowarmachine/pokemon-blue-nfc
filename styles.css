@@ -1,0 +1,42 @@
+*{box-sizing:border-box}
+:root{
+  color-scheme:dark;
+  --bg:#0b0d12;
+  --panel:#141821;
+  --panel2:#1a1f2a;
+  --text:#f4f7fb;
+  --muted:#9aa4b2;
+  --line:rgba(255,255,255,.10);
+  --accent:#7da2ff;
+}
+html,body{margin:0;min-height:100%;background:var(--bg);color:var(--text);font-family:system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif}
+body{min-height:100dvh}
+button,a{font:inherit}
+a{color:inherit;text-decoration:none}
+#app{min-height:100dvh}
+.view{width:min(960px,100%);margin:0 auto;padding:28px 18px 44px}
+.centered{min-height:100dvh;display:flex;flex-direction:column;justify-content:center;align-items:center;text-align:center;max-width:620px}
+.hero{padding:20px 2px 26px}
+.eyebrow{margin:0 0 8px;font-size:12px;font-weight:800;letter-spacing:.16em;color:var(--accent)}
+h1{margin:0;font-size:clamp(28px,8vw,54px);line-height:1.02;letter-spacing:-.04em}
+.subtitle{max-width:620px;margin:14px 0 0;color:var(--muted);font-size:17px;line-height:1.5}
+.catalog{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:14px}
+.game-card{display:block;padding:18px;border:1px solid var(--line);border-radius:22px;background:linear-gradient(180deg,var(--panel2),var(--panel));transition:transform .15s ease,border-color .15s ease}
+.game-card:active{transform:scale(.985)}
+.game-card.disabled{opacity:.68}
+.game-card-top{display:flex;gap:14px;align-items:center}
+.game-icon{display:grid;place-items:center;width:58px;height:58px;flex:0 0 58px;border:1px solid var(--line);border-radius:18px;background:rgba(255,255,255,.05);font-size:30px}
+.game-card h2{margin:0 0 4px;font-size:20px}
+.game-card p{margin:0;color:var(--muted);font-size:14px}
+.pill{display:inline-flex;margin-top:14px;padding:6px 9px;border-radius:999px;background:rgba(125,162,255,.12);color:#bdcdff;font-size:12px;font-weight:700}
+.info-card{width:min(100%,460px);margin:24px 0 0;display:grid;grid-template-columns:1fr 1fr;gap:1px;border:1px solid var(--line);border-radius:18px;overflow:hidden;background:var(--line)}
+.info-card>div{padding:16px;background:var(--panel);text-align:left}
+.label{display:block;margin-bottom:6px;color:var(--muted);font-size:11px;font-weight:800;letter-spacing:.12em}
+.fine{max-width:520px;margin:18px 0 0;color:#7f8997;font-size:13px;line-height:1.5}
+.secondary-button{display:inline-flex;align-items:center;justify-content:center;min-height:48px;margin-top:22px;padding:0 18px;border:1px solid var(--line);border-radius:14px;background:var(--panel);font-weight:750}
+.loader{width:46px;height:46px;margin-bottom:24px;border:4px solid rgba(255,255,255,.14);border-top-color:#fff;border-radius:50%;animation:spin .8s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+#gameView{position:relative;min-height:100dvh;background:#000}
+#game{width:100%;min-height:100dvh;background:#000}
+.exit-button{position:absolute;z-index:20;top:max(12px,env(safe-area-inset-top));right:12px;width:44px;height:44px;border:1px solid rgba(255,255,255,.2);border-radius:50%;background:rgba(0,0,0,.55);color:#fff;font-size:28px;line-height:1}
+@media (prefers-reduced-motion:reduce){.loader{animation:none}.game-card{transition:none}}

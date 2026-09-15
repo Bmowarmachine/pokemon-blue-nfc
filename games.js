@@ -20,7 +20,7 @@ window.NFC_GAMES = {
     core: "gb",
     icon: "🔵",
     description: "Llavero NFC de Pokémon Blue.",
-    romUrl: "./roms/Pokemon - Blue Version(USA,Europe)(SGB Enhanced).gb"
+    romUrl: "./roms/Pokemon-Blue.gb"
   },
 
   "zelda": {

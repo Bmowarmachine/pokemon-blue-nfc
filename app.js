@@ -86,6 +86,8 @@ function startEmulator(id, game) {
   window.EJS_gameID = id;
   window.EJS_pathtodata = "https://cdn.emulatorjs.org/stable/data/";
   window.EJS_startOnLoaded = true;
+  window.EJS_browserMode = "mobile";
+  window.EJS_fullscreenOnLoaded = true;
   window.EJS_language = "es-ES";
   window.EJS_volume = 0.8;
   window.EJS_askBeforeExit = false;

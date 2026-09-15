@@ -83,7 +83,7 @@ function startEmulator(id, game) {
   window.EJS_core = game.core;
   window.EJS_gameUrl = game.romUrl;
   window.EJS_gameName = game.title;
-  window.EJS_gameID = id;
+  window.EJS_gameID = 1;
   window.EJS_pathtodata = "https://cdn.emulatorjs.org/stable/data/";
   window.EJS_startOnLoaded = true;
   window.EJS_browserMode = "mobile";

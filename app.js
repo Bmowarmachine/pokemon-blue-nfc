@@ -1,6 +1,8 @@
 const $ = (selector) => document.querySelector(selector);
 const EMULATOR_DATA_URL = "https://cdn.emulatorjs.org/stable/data/";
-const SAVE_FLUSH_INTERVAL_MS = 5000;
+const SAVE_FLUSH_INTERVAL_SECONDS = 5;
+const SAVE_FLUSH_INTERVAL_MS = SAVE_FLUSH_INTERVAL_SECONDS * 1000;
+const SAVE_FLUSH_RETRY_LIMIT = 40;
 
 const views = [
   $("#catalogView"),
@@ -16,6 +18,7 @@ function show(view) {
 
 const serviceWorkerReady = registerServiceWorker();
 let saveStatusTimer = 0;
+let pageSaveHandlersInstalled = false;
 
 function registerServiceWorker() {
   if (!("serviceWorker" in navigator) || location.protocol === "file:") {
@@ -75,6 +78,51 @@ function showSaveStatus() {
   saveStatusTimer = setTimeout(() => {
     status.hidden = true;
   }, 2400);
+}
+
+function flushGameSave() {
+  try {
+    const manager = window.EJS_emulator && window.EJS_emulator.gameManager;
+    if (manager && typeof manager.saveSaveFiles === "function") {
+      manager.saveSaveFiles();
+    }
+  } catch (error) {
+    console.warn("No se pudo guardar la partida en este momento.", error);
+  }
+}
+
+function configureAutoSaveFlush(attempt = 0) {
+  const emulator = window.EJS_emulator;
+
+  if (!emulator || !emulator.gameManager || typeof emulator.menuOptionChanged !== "function") {
+    if (attempt < SAVE_FLUSH_RETRY_LIMIT) {
+      setTimeout(() => configureAutoSaveFlush(attempt + 1), 250);
+    }
+    return;
+  }
+
+  if (!emulator.__nfcSaveHooksInstalled && typeof emulator.on === "function") {
+    emulator.__nfcSaveHooksInstalled = true;
+    emulator.on("saveSaveFiles", save => {
+      if (save && save.byteLength > 0) {
+        showSaveStatus();
+      }
+    });
+  }
+
+  emulator.menuOptionChanged("save-save-interval", String(SAVE_FLUSH_INTERVAL_SECONDS));
+}
+
+function installPageSaveFlushHandlers() {
+  if (pageSaveHandlersInstalled) return;
+  pageSaveHandlersInstalled = true;
+
+  window.addEventListener("pagehide", flushGameSave);
+  document.addEventListener("visibilitychange", () => {
+    if (document.visibilityState === "hidden") {
+      flushGameSave();
+    }
+  });
 }
 
 function renderCatalog() {
@@ -142,6 +190,7 @@ function queueEmulatorStart(id, game) {
 
 function startEmulator(id, game) {
   prepareLoadingScreen(game);
+  installPageSaveFlushHandlers();
 
   window.EJS_player = "#game";
   window.EJS_core = game.core;
@@ -159,6 +208,10 @@ function startEmulator(id, game) {
     cacheMaxSizeMB: 4096,
     cacheMaxAgeMins: 43200
   };
+  window.EJS_defaultOptions = {
+    "save-save-interval": String(SAVE_FLUSH_INTERVAL_SECONDS)
+  };
+  window.EJS_hideSettings = ["save-save-interval"];
   window.EJS_fixedSaveInterval = SAVE_FLUSH_INTERVAL_MS;
   window.EJS_Buttons = {
     saveState: false,
@@ -171,7 +224,10 @@ function startEmulator(id, game) {
     exitEmulation: false
   };
 
-  const revealGame = () => show($("#gameView"));
+  const revealGame = () => {
+    show($("#gameView"));
+    configureAutoSaveFlush();
+  };
   window.EJS_ready = revealGame;
   window.EJS_onGameStart = revealGame;
   window.EJS_onSaveUpdate = showSaveStatus;

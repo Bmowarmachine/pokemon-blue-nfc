@@ -57,7 +57,7 @@ Usa un `gameId` distinto para cada juego. Ese número separa la caché y las par
 
 ## Guardar partida
 
-Guarda desde el menú interno del juego. La web fuerza a EmulatorJS a volcar el archivo `.sav` cada pocos segundos y oculta los botones de save-state del emulador para evitar confusiones.
+Guarda desde el menú interno del juego. La web activa el intervalo interno de guardado de EmulatorJS para volcar el archivo `.sav` cada pocos segundos, intenta guardar al cerrar/ocultar la página y oculta los botones de save-state del emulador para evitar confusiones.
 
 En el primer arranque el navegador todavía debe descargar el emulador y la ROM. Después, el service worker y la caché de EmulatorJS reutilizan esos archivos para que los siguientes arranques sean más rápidos.
 

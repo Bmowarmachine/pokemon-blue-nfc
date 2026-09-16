@@ -1,4 +1,4 @@
-const CACHE = "nfc-games-v9";
+const CACHE = "nfc-games-v10";
 const RUNTIME_CACHE = "nfc-games-runtime-v1";
 const EMULATOR_DATA_ORIGIN = "https://cdn.emulatorjs.org";
 

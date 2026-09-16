@@ -13,7 +13,7 @@
   <link rel="preload" href="https://cdn.emulatorjs.org/stable/data/emulator.min.js" as="script">
   <link rel="preload" href="https://cdn.emulatorjs.org/stable/data/emulator.min.css" as="style">
   <link rel="manifest" href="./manifest.webmanifest">
-  <link rel="stylesheet" href="./styles.css">
+  <link rel="stylesheet" href="./styles.css?v=save-v2">
 </head>
 <body>
   <main id="app">
@@ -72,10 +72,11 @@
     <section id="gameView" hidden>
       <div id="game"></div>
       <div id="saveStatus" class="save-status" hidden aria-live="polite">Partida guardada</div>
+      <button id="exitGame" class="exit-button" type="button" aria-label="Salir del juego" hidden>×</button>
     </section>
   </main>
 
-  <script src="./games.js"></script>
-  <script src="./app.js"></script>
+  <script src="./games.js?v=save-v2"></script>
+  <script src="./app.js?v=save-v2"></script>
 </body>
 </html>

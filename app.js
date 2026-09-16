@@ -1,4 +1,6 @@
 const $ = (selector) => document.querySelector(selector);
+const EMULATOR_DATA_URL = "https://cdn.emulatorjs.org/stable/data/";
+const SAVE_FLUSH_INTERVAL_MS = 5000;
 
 const views = [
   $("#catalogView"),
@@ -12,8 +14,26 @@ function show(view) {
   views.forEach(v => v.hidden = v !== view);
 }
 
+const serviceWorkerReady = registerServiceWorker();
+let saveStatusTimer = 0;
+
+function registerServiceWorker() {
+  if (!("serviceWorker" in navigator) || location.protocol === "file:") {
+    return Promise.resolve(null);
+  }
+
+  return navigator.serviceWorker
+    .register("./sw.js")
+    .then(() => navigator.serviceWorker.ready)
+    .catch(() => null);
+}
+
 function safeText(value) {
   return String(value ?? "");
+}
+
+function delay(ms) {
+  return new Promise(resolve => setTimeout(resolve, ms));
 }
 
 function gameUrl(id) {
@@ -21,6 +41,44 @@ function gameUrl(id) {
   url.search = "";
   url.searchParams.set("game", id);
   return url.toString();
+}
+
+function gameIdFor(id, game) {
+  const configuredId = Number(game.gameId);
+  if (Number.isInteger(configuredId) && configuredId > 0) {
+    return configuredId;
+  }
+
+  let hash = 0;
+  for (const char of id) {
+    hash = ((hash << 5) - hash + char.charCodeAt(0)) | 0;
+  }
+  return Math.abs(hash) || 1;
+}
+
+function warmGameCache(games) {
+  if (!("caches" in window)) return;
+
+  const urls = Object.values(games)
+    .map(game => game.romUrl)
+    .filter(url => typeof url === "string" && (url.startsWith("./") || url.startsWith("/")));
+
+  if (!urls.length) return;
+
+  serviceWorkerReady.then(() => {
+    caches.open("nfc-games-runtime-v1")
+      .then(cache => Promise.allSettled(urls.map(url => cache.add(url))))
+      .catch(() => {});
+  });
+}
+
+function showSaveStatus() {
+  const status = $("#saveStatus");
+  status.hidden = false;
+  clearTimeout(saveStatusTimer);
+  saveStatusTimer = setTimeout(() => {
+    status.hidden = true;
+  }, 2400);
 }
 
 function renderCatalog() {
@@ -57,6 +115,7 @@ function renderCatalog() {
   });
 
   show($("#catalogView"));
+  warmGameCache(window.NFC_GAMES || {});
 }
 
 function showSetup(id, game) {
@@ -74,30 +133,57 @@ function fail(message) {
   show($("#errorView"));
 }
 
-function startEmulator(id, game) {
-  show($("#loadingView"));
+function prepareLoadingScreen(game) {
   $("#loadingTitle").textContent = "Abriendo " + safeText(game.title);
-  $("#loadingSubtitle").textContent = "Cargando emulador y juego…";
+  $("#loadingSubtitle").textContent = "Cargando emulador y juego...";
+  show($("#loadingView"));
+}
+
+function queueEmulatorStart(id, game) {
+  prepareLoadingScreen(game);
+  serviceWorkerReady.then(() => warmGameCache({ [id]: game }));
+  Promise.race([serviceWorkerReady, delay(800)]).finally(() => startEmulator(id, game));
+}
+
+function startEmulator(id, game) {
+  prepareLoadingScreen(game);
 
   window.EJS_player = "#game";
   window.EJS_core = game.core;
   window.EJS_gameUrl = game.romUrl;
-  window.EJS_gameName = game.title;
-  window.EJS_gameID = 1;
-  window.EJS_pathtodata = "https://cdn.emulatorjs.org/stable/data/";
+  window.EJS_gameName = game.saveName || id;
+  window.EJS_gameID = gameIdFor(id, game);
+  window.EJS_pathtodata = EMULATOR_DATA_URL;
   window.EJS_startOnLoaded = true;
   window.EJS_browserMode = "mobile";
   window.EJS_language = "es-ES";
   window.EJS_volume = 0.8;
   window.EJS_askBeforeExit = false;
+  window.EJS_cacheConfig = {
+    enabled: true,
+    cacheMaxSizeMB: 4096,
+    cacheMaxAgeMins: 43200
+  };
+  window.EJS_fixedSaveInterval = SAVE_FLUSH_INTERVAL_MS;
+  window.EJS_Buttons = {
+    saveState: false,
+    loadState: false,
+    quickSave: false,
+    quickLoad: false,
+    saveSavFiles: false,
+    loadSavFiles: false,
+    cacheManager: false
+  };
 
   const revealGame = () => show($("#gameView"));
   window.EJS_ready = revealGame;
   window.EJS_onGameStart = revealGame;
+  window.EJS_onSaveUpdate = showSaveStatus;
 
   const loader = document.createElement("script");
-  loader.src = "https://cdn.emulatorjs.org/stable/data/loader.js";
+  loader.src = EMULATOR_DATA_URL + "loader.js";
   loader.async = true;
+  loader.crossOrigin = "anonymous";
   loader.onerror = () => fail("No se pudo cargar el emulador. Revisa tu conexión a Internet.");
   document.body.appendChild(loader);
 
@@ -139,13 +225,9 @@ $("#exitGame").addEventListener("click", () => {
       return;
     }
 
-    startEmulator(id, game);
+    queueEmulatorStart(id, game);
   } catch (error) {
     console.error(error);
     fail("Ocurrió un error al preparar el juego.");
   }
 })();
-
-if ("serviceWorker" in navigator) {
-  navigator.serviceWorker.register("./sw.js").catch(() => {});
-}

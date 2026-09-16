@@ -38,6 +38,7 @@ Edita `games.js`:
   title: "Mi juego",
   system: "Game Boy",
   core: "gb",
+  gameId: 4,
   icon: "🎮",
   description: "Mi llavero",
   romUrl: "https://ejemplo.com/mi-juego.gb"
@@ -51,6 +52,14 @@ romUrl: "./roms/mi-juego.gb"
 ```
 
 Usa solamente archivos de juego que tengas derecho a distribuir.
+
+Usa un `gameId` distinto para cada juego. Ese número separa la caché y las partidas guardadas de cada tag NFC.
+
+## Guardar partida
+
+Guarda desde el menú interno del juego. La web fuerza a EmulatorJS a volcar el archivo `.sav` cada pocos segundos y oculta los botones de save-state del emulador para evitar confusiones.
+
+En el primer arranque el navegador todavía debe descargar el emulador y la ROM. Después, el service worker y la caché de EmulatorJS reutilizan esos archivos para que los siguientes arranques sean más rápidos.
 
 ## Agregar un nuevo NFC
 

@@ -7,6 +7,9 @@
   <meta name="mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <title>NFC Games</title>
+  <link rel="preconnect" href="https://cdn.emulatorjs.org">
+  <link rel="dns-prefetch" href="https://cdn.emulatorjs.org">
+  <link rel="preload" href="https://cdn.emulatorjs.org/stable/data/loader.js" as="script" crossorigin>
   <link rel="manifest" href="./manifest.webmanifest">
   <link rel="stylesheet" href="./styles.css">
 </head>
@@ -66,6 +69,7 @@
 
     <section id="gameView" hidden>
       <div id="game"></div>
+      <div id="saveStatus" class="save-status" hidden aria-live="polite">Partida guardada</div>
       <button id="exitGame" class="exit-button" type="button" aria-label="Salir del juego">×</button>
     </section>
   </main>

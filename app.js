@@ -211,7 +211,6 @@ function startEmulator(id, game) {
   window.EJS_defaultOptions = {
     "save-save-interval": String(SAVE_FLUSH_INTERVAL_SECONDS)
   };
-  window.EJS_hideSettings = ["save-save-interval"];
   window.EJS_fixedSaveInterval = SAVE_FLUSH_INTERVAL_MS;
   window.EJS_Buttons = {
     saveState: false,

@@ -32,10 +32,6 @@ function safeText(value) {
   return String(value ?? "");
 }
 
-function delay(ms) {
-  return new Promise(resolve => setTimeout(resolve, ms));
-}
-
 function gameUrl(id) {
   const url = new URL(location.href);
   url.search = "";
@@ -140,9 +136,8 @@ function prepareLoadingScreen(game) {
 }
 
 function queueEmulatorStart(id, game) {
-  prepareLoadingScreen(game);
   serviceWorkerReady.then(() => warmGameCache({ [id]: game }));
-  Promise.race([serviceWorkerReady, delay(800)]).finally(() => startEmulator(id, game));
+  startEmulator(id, game);
 }
 
 function startEmulator(id, game) {

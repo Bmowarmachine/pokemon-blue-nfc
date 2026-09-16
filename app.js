@@ -167,7 +167,8 @@ function startEmulator(id, game) {
     quickLoad: false,
     saveSavFiles: false,
     loadSavFiles: false,
-    cacheManager: false
+    cacheManager: false,
+    exitEmulation: false
   };
 
   const revealGame = () => show($("#gameView"));
@@ -189,10 +190,6 @@ function startEmulator(id, game) {
     }
   }, 4500);
 }
-
-$("#exitGame").addEventListener("click", () => {
-  location.href = "./";
-});
 
 (() => {
   try {

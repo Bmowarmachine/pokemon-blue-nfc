@@ -55,5 +55,4 @@ h1{margin:0;font-size:clamp(28px,8vw,54px);line-height:1.02;letter-spacing:-.04e
 
 .save-status{position:absolute;z-index:20;left:50%;bottom:max(16px,env(safe-area-inset-bottom));transform:translateX(-50%);padding:9px 12px;border:1px solid rgba(255,255,255,.18);border-radius:999px;background:rgba(0,0,0,.68);color:#fff;font-size:13px;font-weight:750;box-shadow:0 10px 24px rgba(0,0,0,.28)}
 
-.exit-button{position:absolute;z-index:20;top:max(12px,env(safe-area-inset-top));right:12px;width:44px;height:44px;border:1px solid rgba(255,255,255,.2);border-radius:50%;background:rgba(0,0,0,.55);color:#fff;font-size:28px;line-height:1}
 @media (prefers-reduced-motion:reduce){.loader{animation:none}.game-card{transition:none}}

@@ -52,7 +52,9 @@ async function github(path, options = {}) {
 
   if (!response.ok) {
     const detail = await response.json().catch(() => ({}));
-    throw new Error(detail.message || `GitHub respondió ${response.status}.`);
+    const error = new Error(detail.message || `GitHub respondió ${response.status}.`);
+    error.status = response.status;
+    throw error;
   }
   return response.status === 204 ? null : response.json();
 }
@@ -92,25 +94,38 @@ async function loadRepositoryData() {
 async function commitFiles(files, message) {
   const readRefPath = `/repos/${REPO_OWNER}/${REPO_NAME}/git/ref/heads/${REPO_BRANCH}`;
   const updateRefPath = `/repos/${REPO_OWNER}/${REPO_NAME}/git/refs/heads/${REPO_BRANCH}`;
-  const ref = await github(readRefPath);
-  const baseCommit = await github(`/repos/${REPO_OWNER}/${REPO_NAME}/git/commits/${ref.object.sha}`);
   const blobs = await Promise.all(files.map(file => github(`/repos/${REPO_OWNER}/${REPO_NAME}/git/blobs`, {
     method: "POST",
     body: JSON.stringify({ content: file.content, encoding: "base64" })
   })));
-  const tree = await github(`/repos/${REPO_OWNER}/${REPO_NAME}/git/trees`, {
-    method: "POST",
-    body: JSON.stringify({
-      base_tree: baseCommit.tree.sha,
-      tree: files.map((file, index) => ({ path: file.path, mode: "100644", type: "blob", sha: blobs[index].sha }))
-    })
-  });
-  const commit = await github(`/repos/${REPO_OWNER}/${REPO_NAME}/git/commits`, {
-    method: "POST",
-    body: JSON.stringify({ message, tree: tree.sha, parents: [ref.object.sha] })
-  });
-  await github(updateRefPath, { method: "PATCH", body: JSON.stringify({ sha: commit.sha, force: false }) });
-  return commit;
+
+  for (let attempt = 0; attempt < 3; attempt += 1) {
+    const ref = await github(readRefPath);
+    const baseCommit = await github(`/repos/${REPO_OWNER}/${REPO_NAME}/git/commits/${ref.object.sha}`);
+    const tree = await github(`/repos/${REPO_OWNER}/${REPO_NAME}/git/trees`, {
+      method: "POST",
+      body: JSON.stringify({
+        base_tree: baseCommit.tree.sha,
+        tree: files.map((file, index) => ({ path: file.path, mode: "100644", type: "blob", sha: blobs[index].sha }))
+      })
+    });
+    const commit = await github(`/repos/${REPO_OWNER}/${REPO_NAME}/git/commits`, {
+      method: "POST",
+      body: JSON.stringify({ message, tree: tree.sha, parents: [ref.object.sha] })
+    });
+
+    try {
+      await github(updateRefPath, { method: "PATCH", body: JSON.stringify({ sha: commit.sha, force: false }) });
+      return commit;
+    } catch (error) {
+      const changedBranch = error.status === 409
+        || error.status === 422
+        || /fast forward/i.test(error.message);
+      if (!changedBranch || attempt === 2) throw error;
+    }
+  }
+
+  throw new Error("GitHub cambió la rama varias veces. Intenta de nuevo.");
 }
 
 function showBusy(message) {

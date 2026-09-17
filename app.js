@@ -140,18 +140,26 @@ function cloudSavePath(id, tag) {
   return `${tag}/${id}.srm`;
 }
 
-function cloudObjectUrl(id, tag) {
+function cloudObjectPath(id, tag) {
   const path = cloudSavePath(id, tag)
     .split("/")
     .map(encodeURIComponent)
     .join("/");
-  return `${SUPABASE_URL}/storage/v1/object/authenticated/${SUPABASE_SAVE_BUCKET}/${path}`;
+  return `${SUPABASE_SAVE_BUCKET}/${path}`;
+}
+
+function cloudDownloadUrl(id, tag) {
+  return `${SUPABASE_URL}/storage/v1/object/authenticated/${cloudObjectPath(id, tag)}`;
+}
+
+function cloudUploadUrl(id, tag) {
+  return `${SUPABASE_URL}/storage/v1/object/${cloudObjectPath(id, tag)}`;
 }
 
 async function downloadCloudSave(id, tag) {
   if (!tag) return null;
 
-  const response = await fetch(cloudObjectUrl(id, tag), {
+  const response = await fetch(cloudDownloadUrl(id, tag), {
     headers: { apikey: SUPABASE_PUBLISHABLE_KEY },
     cache: "no-store"
   });
@@ -167,7 +175,7 @@ async function downloadCloudSave(id, tag) {
 async function uploadCloudSave(id, tag, save) {
   if (!tag || !save || !save.byteLength) return;
 
-  const response = await fetch(cloudObjectUrl(id, tag), {
+  const response = await fetch(cloudUploadUrl(id, tag), {
     method: "POST",
     headers: {
       apikey: SUPABASE_PUBLISHABLE_KEY,

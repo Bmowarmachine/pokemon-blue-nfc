@@ -16,5 +16,14 @@ window.NFC_GAMES = {
     "icon": "🎮",
     "description": "pokemon red",
     "romUrl": "./roms/pokemon-red/pokemon-red.gb"
+  },
+  "the-legend-of-zelda-link-s-awakening": {
+    "title": "The Legend of Zelda Link´s Awakening",
+    "system": "Game Boy",
+    "core": "gb",
+    "gameId": 5,
+    "icon": "🗡️",
+    "description": "The Legend of Zelda Link´s Awakening",
+    "romUrl": "./roms/the-legend-of-zelda-link-s-awakening/the-legend-of-zelda-link-s-awakening.gb"
   }
 };

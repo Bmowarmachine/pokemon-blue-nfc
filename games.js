@@ -25,5 +25,14 @@ window.NFC_GAMES = {
     "icon": "🍄",
     "description": "Llavero NFC de Mario.",
     "romUrl": ""
+  },
+  "pokemon-red": {
+    "title": "Pokemon Red",
+    "system": "Game Boy",
+    "core": "gb",
+    "gameId": 4,
+    "icon": "🎮",
+    "description": "pokemon red",
+    "romUrl": "./roms/pokemon-red/pokemon-red.gb"
   }
 };

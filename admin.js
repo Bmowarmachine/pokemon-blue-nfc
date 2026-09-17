@@ -42,6 +42,7 @@ function decodeText(value) {
 async function github(path, options = {}) {
   const response = await fetch(`${GITHUB_API}${path}`, {
     ...options,
+    cache: "no-store",
     headers: {
       Accept: "application/vnd.github+json",
       Authorization: `Bearer ${githubToken}`,

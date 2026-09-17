@@ -19,6 +19,8 @@ function show(view) {
 
 const serviceWorkerReady = registerServiceWorker();
 let saveStatusTimer = 0;
+let saveFlushTimer = 0;
+let saveSyncQueue = Promise.resolve();
 let pageSaveHandlersInstalled = false;
 
 function registerServiceWorker() {
@@ -130,10 +132,31 @@ function showSaveStatus() {
   }, 2400);
 }
 
+function syncSaveDatabase(manager) {
+  saveSyncQueue = saveSyncQueue
+    .catch(() => {})
+    .then(() => new Promise((resolve, reject) => {
+      manager.FS.syncfs(false, error => {
+        if (error) {
+          reject(error);
+          return;
+        }
+
+        showSaveStatus();
+        resolve();
+      });
+    }))
+    .catch(error => {
+      console.warn("No se pudo escribir la partida en el navegador.", error);
+    });
+
+  return saveSyncQueue;
+}
+
 function flushGameSave() {
   try {
     const manager = window.EJS_emulator && window.EJS_emulator.gameManager;
-    if (manager && typeof manager.saveSaveFiles === "function") {
+    if (manager && manager.FS && typeof manager.saveSaveFiles === "function") {
       manager.saveSaveFiles();
     }
   } catch (error) {
@@ -155,12 +178,14 @@ function configureAutoSaveFlush(attempt = 0) {
     emulator.__nfcSaveHooksInstalled = true;
     emulator.on("saveSaveFiles", save => {
       if (save && save.byteLength > 0) {
-        showSaveStatus();
+        syncSaveDatabase(emulator.gameManager);
       }
     });
   }
 
-  emulator.menuOptionChanged("save-save-interval", String(SAVE_FLUSH_INTERVAL_SECONDS));
+  emulator.menuOptionChanged("save-save-interval", "0");
+  clearInterval(saveFlushTimer);
+  saveFlushTimer = setInterval(flushGameSave, SAVE_FLUSH_INTERVAL_MS);
 }
 
 function installPageSaveFlushHandlers() {
@@ -268,9 +293,8 @@ function startEmulator(id, game, tag, romUrl) {
     cacheMaxAgeMins: 43200
   };
   window.EJS_defaultOptions = {
-    "save-save-interval": String(SAVE_FLUSH_INTERVAL_SECONDS)
+    "save-save-interval": "0"
   };
-  window.EJS_fixedSaveInterval = SAVE_FLUSH_INTERVAL_MS;
   window.EJS_Buttons = {
     saveState: false,
     loadState: false,

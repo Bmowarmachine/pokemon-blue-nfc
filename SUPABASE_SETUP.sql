@@ -18,7 +18,11 @@ for select
 to anon
 using (
   bucket_id = 'game-saves'
-  and storage.allow_only_operation('object.get_authenticated')
+  and storage.allow_any_operation(array[
+    'object.get_authenticated',
+    'object.upload',
+    'object.upload_update'
+  ])
 );
 
 drop policy if exists "NFC saves can be created" on storage.objects;

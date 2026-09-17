@@ -1,4 +1,4 @@
-const CACHE = "nfc-games-v17";
+const CACHE = "nfc-games-v18";
 const RUNTIME_CACHE = "nfc-games-runtime-v1";
 const EMULATOR_DATA_ORIGIN = "https://cdn.emulatorjs.org";
 
@@ -8,6 +8,9 @@ const APP_ASSETS = [
   "./styles.css",
   "./games.js",
   "./app.js",
+  "./admin.html",
+  "./admin.css",
+  "./admin.js",
   "./manifest.webmanifest"
 ];
 

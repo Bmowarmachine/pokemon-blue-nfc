@@ -1,0 +1,109 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+  <meta name="theme-color" content="#111318">
+  <title>Administrar NFC Games</title>
+  <link rel="stylesheet" href="./admin.css?v=1">
+</head>
+<body>
+  <header class="topbar">
+    <div>
+      <span class="kicker">NFC GAMES</span>
+      <h1>Administración</h1>
+    </div>
+    <span id="connectionBadge" class="status">Sin conectar</span>
+  </header>
+
+  <main>
+    <section id="loginPanel" class="login-panel">
+      <h2>Conectar con GitHub</h2>
+      <p>Usa un token de acceso con permiso de lectura y escritura para este repositorio. El token permanece solamente en esta pestaña.</p>
+      <label>
+        Token de GitHub
+        <input id="githubToken" type="password" autocomplete="off" spellcheck="false" placeholder="github_pat_...">
+      </label>
+      <button id="connectButton" class="primary" type="button">Conectar</button>
+      <p id="loginError" class="error" hidden></p>
+    </section>
+
+    <section id="adminPanel" hidden>
+      <nav class="tabs" aria-label="Herramientas">
+        <button class="tab active" type="button" data-tab="gamesPanel">Juegos</button>
+        <button class="tab" type="button" data-tab="tagsPanel">Tags NFC</button>
+      </nav>
+
+      <section id="gamesPanel" class="tool-panel">
+        <div class="section-heading">
+          <div>
+            <h2>Juegos</h2>
+            <p>ROMs publicadas y disponibles para tus tags.</p>
+          </div>
+          <button id="showGameForm" class="primary" type="button">Agregar juego</button>
+        </div>
+        <div id="gamesList" class="data-list"></div>
+
+        <form id="gameForm" class="form-panel" hidden>
+          <div class="form-header">
+            <h3>Nuevo juego</h3>
+            <button class="icon-button" type="button" data-close="gameForm" aria-label="Cerrar">×</button>
+          </div>
+          <div class="form-grid">
+            <label>Nombre del juego<input id="gameTitle" required maxlength="80" placeholder="Pokémon Red"></label>
+            <label>Icono<input id="gameIcon" maxlength="8" placeholder="🎮"></label>
+            <label class="wide">Descripción<input id="gameDescription" maxlength="140" placeholder="Llavero NFC de Pokémon Red."></label>
+            <label class="wide">Archivo ROM<input id="gameRom" type="file" accept=".gb,.gbc" required></label>
+          </div>
+          <div class="form-actions">
+            <button type="button" class="secondary" data-close="gameForm">Cancelar</button>
+            <button type="submit" class="primary">Publicar juego</button>
+          </div>
+        </form>
+      </section>
+
+      <section id="tagsPanel" class="tool-panel" hidden>
+        <div class="section-heading">
+          <div>
+            <h2>Tags NFC</h2>
+            <p>Crea una ruta independiente de guardado y su enlace listo para grabar.</p>
+          </div>
+          <button id="showTagForm" class="primary" type="button">Nuevo tag</button>
+        </div>
+        <div id="tagsList" class="data-list"></div>
+
+        <form id="tagForm" class="form-panel" hidden>
+          <div class="form-header">
+            <h3>Nuevo tag NFC</h3>
+            <button class="icon-button" type="button" data-close="tagForm" aria-label="Cerrar">×</button>
+          </div>
+          <div class="form-grid">
+            <label class="wide">Juego<select id="tagGame" required></select></label>
+            <label class="wide">Nombre de referencia<input id="tagLabel" required maxlength="80" placeholder="Llavero azul 01"></label>
+          </div>
+          <div class="form-actions">
+            <button type="button" class="secondary" data-close="tagForm">Cancelar</button>
+            <button type="submit" class="primary">Crear ruta NFC</button>
+          </div>
+        </form>
+      </section>
+
+      <aside id="resultPanel" class="result-panel" hidden aria-live="polite">
+        <strong id="resultTitle"></strong>
+        <p id="resultText"></p>
+        <div id="resultUrlRow" class="url-row" hidden>
+          <input id="resultUrl" readonly>
+          <button id="copyUrl" class="secondary" type="button">Copiar URL</button>
+        </div>
+      </aside>
+    </section>
+  </main>
+
+  <div id="busyOverlay" class="busy" hidden>
+    <span class="spinner"></span>
+    <strong id="busyText">Publicando…</strong>
+  </div>
+
+  <script src="./admin.js?v=1"></script>
+</body>
+</html>

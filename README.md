@@ -89,3 +89,14 @@ Para varios tags del mismo juego, no repitas la URL exacta: cambia solamente el 
 ## Compatibilidad
 
 La web usa EmulatorJS. Algunos navegadores pueden pedir un toque en pantalla para habilitar audio o iniciar contenido interactivo.
+
+## Panel de administracion
+
+Abre `https://bmowarmachine.github.io/pokemon-blue-nfc/admin.html` para administrar juegos y tags NFC.
+
+El panel necesita un fine-grained personal access token de GitHub con acceso unicamente al repositorio `pokemon-blue-nfc` y el permiso **Contents: Read and write**. El token se conserva solo en memoria mientras la pestana esta abierta; no se almacena en GitHub, Supabase ni el navegador.
+
+- **Agregar juego** crea `roms/ID-DEL-JUEGO/`, sube la ROM y actualiza `games.js` en un solo commit.
+- **Nuevo tag** genera una ID aleatoria, crea `tags/ID-DEL-TAG/tag.json`, reserva la carpeta en Supabase y muestra la URL que debe grabarse en el NFC.
+
+Usa solamente ROMs que tengas derecho a almacenar y distribuir.

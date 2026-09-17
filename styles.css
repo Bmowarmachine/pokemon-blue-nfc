@@ -72,7 +72,7 @@ h1{margin:0;font-size:clamp(28px,8vw,54px);line-height:1.02;letter-spacing:-.04e
 }
 
 #game .ejs_virtualGamepad_parent{
-  bottom:78px !important;
+  bottom:106px !important;
 }
 
 @media (prefers-reduced-motion:reduce){.loader{animation:none}.game-card{transition:none}}

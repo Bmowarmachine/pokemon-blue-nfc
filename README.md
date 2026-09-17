@@ -65,7 +65,9 @@ Agrega `&tag=ID-DEL-TAG` a la URL para crear una partida independiente para cada
 
 Cada ID funciona como una carpeta logica de guardado. Usa siempre una ID diferente y conserva exactamente la misma URL al volver a grabar o reemplazar un tag.
 
-La partida se almacena en el navegador del celular, no dentro del chip NFC. Por eso, el mismo tag conserva su partida al abrirse de nuevo en el mismo celular y navegador. En otro celular comenzara con el almacenamiento propio de ese dispositivo; para compartir partidas entre celulares se necesita un servicio de sincronizacion en la nube.
+La partida se almacena en el navegador y se sincroniza con Supabase. El mismo tag puede continuar su partida desde otro celular cuando el bucket `game-saves` y sus politicas se hayan creado con `SUPABASE_SETUP.sql`.
+
+El valor de `tag` funciona como la llave de la partida. Para tags reales usa un identificador largo y aleatorio, por ejemplo `tag=8f31c7a2e94b4d69a7c21f05`, porque cualquier persona que conozca la URL completa puede abrir esa partida.
 
 ## Guardar partida
 

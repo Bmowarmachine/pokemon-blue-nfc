@@ -4,6 +4,9 @@ const SAVE_FLUSH_INTERVAL_SECONDS = 5;
 const SAVE_FLUSH_INTERVAL_MS = SAVE_FLUSH_INTERVAL_SECONDS * 1000;
 const SAVE_FLUSH_RETRY_LIMIT = 40;
 const DEFAULT_ROM_EXTENSION = "gb";
+const SUPABASE_URL = "https://icwazkciwquxxzghjhur.supabase.co";
+const SUPABASE_PUBLISHABLE_KEY = "sb_publishable_qd3NyB8SzL12y_LPnmosQg_mjixBtT_";
+const SUPABASE_SAVE_BUCKET = "game-saves";
 
 const views = [
   $("#catalogView"),
@@ -123,8 +126,9 @@ function warmGameCache(games) {
   });
 }
 
-function showSaveStatus() {
+function showSaveStatus(message = "Partida guardada") {
   const status = $("#saveStatus");
+  status.textContent = message;
   status.hidden = false;
   clearTimeout(saveStatusTimer);
   saveStatusTimer = setTimeout(() => {
@@ -132,7 +136,55 @@ function showSaveStatus() {
   }, 2400);
 }
 
-function syncSaveDatabase(manager) {
+function cloudSavePath(id, tag) {
+  return `${tag}/${id}.srm`;
+}
+
+function cloudObjectUrl(id, tag) {
+  const path = cloudSavePath(id, tag)
+    .split("/")
+    .map(encodeURIComponent)
+    .join("/");
+  return `${SUPABASE_URL}/storage/v1/object/authenticated/${SUPABASE_SAVE_BUCKET}/${path}`;
+}
+
+async function downloadCloudSave(id, tag) {
+  if (!tag) return null;
+
+  const response = await fetch(cloudObjectUrl(id, tag), {
+    headers: { apikey: SUPABASE_PUBLISHABLE_KEY },
+    cache: "no-store"
+  });
+
+  if (response.status === 400 || response.status === 404) return null;
+  if (!response.ok) {
+    throw new Error(`Supabase no pudo descargar la partida (${response.status}).`);
+  }
+
+  return new Uint8Array(await response.arrayBuffer());
+}
+
+async function uploadCloudSave(id, tag, save) {
+  if (!tag || !save || !save.byteLength) return;
+
+  const response = await fetch(cloudObjectUrl(id, tag), {
+    method: "POST",
+    headers: {
+      apikey: SUPABASE_PUBLISHABLE_KEY,
+      "Content-Type": "application/octet-stream",
+      "x-upsert": "true"
+    },
+    body: save
+  });
+
+  if (!response.ok) {
+    const detail = await response.text().catch(() => "");
+    throw new Error(`Supabase no pudo subir la partida (${response.status}): ${detail}`);
+  }
+}
+
+function syncSaveDatabase(manager, save, id, tag) {
+  const saveCopy = save ? new Uint8Array(save) : null;
   saveSyncQueue = saveSyncQueue
     .catch(() => {})
     .then(() => new Promise((resolve, reject) => {
@@ -142,12 +194,14 @@ function syncSaveDatabase(manager) {
           return;
         }
 
-        showSaveStatus();
         resolve();
       });
     }))
+    .then(() => uploadCloudSave(id, tag, saveCopy))
+    .then(() => showSaveStatus(tag ? "Partida guardada en la nube" : "Partida guardada"))
     .catch(error => {
       console.warn("No se pudo escribir la partida en el navegador.", error);
+      showSaveStatus("Guardado local; nube pendiente");
     });
 
   return saveSyncQueue;
@@ -164,12 +218,27 @@ function flushGameSave() {
   }
 }
 
-function configureAutoSaveFlush(attempt = 0) {
+async function restoreCloudSave(manager, cloudSave) {
+  if (!cloudSave || !cloudSave.byteLength || manager.__nfcCloudSaveLoaded) return;
+
+  const savePath = manager.getSaveFilePath();
+  if (!savePath) return;
+
+  manager.__nfcCloudSaveLoaded = true;
+  manager.FS.writeFile(savePath, cloudSave);
+  await new Promise((resolve, reject) => {
+    manager.FS.syncfs(false, error => error ? reject(error) : resolve());
+  });
+  manager.loadSaveFiles();
+  showSaveStatus("Partida cargada desde la nube");
+}
+
+function configureAutoSaveFlush(id, tag, cloudSave, attempt = 0) {
   const emulator = window.EJS_emulator;
 
   if (!emulator || !emulator.gameManager || typeof emulator.menuOptionChanged !== "function") {
     if (attempt < SAVE_FLUSH_RETRY_LIMIT) {
-      setTimeout(() => configureAutoSaveFlush(attempt + 1), 250);
+      setTimeout(() => configureAutoSaveFlush(id, tag, cloudSave, attempt + 1), 250);
     }
     return;
   }
@@ -178,10 +247,14 @@ function configureAutoSaveFlush(attempt = 0) {
     emulator.__nfcSaveHooksInstalled = true;
     emulator.on("saveSaveFiles", save => {
       if (save && save.byteLength > 0) {
-        syncSaveDatabase(emulator.gameManager);
+        syncSaveDatabase(emulator.gameManager, save, id, tag);
       }
     });
   }
+
+  restoreCloudSave(emulator.gameManager, cloudSave).catch(error => {
+    console.warn("No se pudo restaurar la partida de Supabase.", error);
+  });
 
   emulator.menuOptionChanged("save-save-interval", "0");
   clearInterval(saveFlushTimer);
@@ -264,15 +337,21 @@ async function queueEmulatorStart(id, game) {
   serviceWorkerReady.then(() => warmGameCache({ [id]: game }));
 
   try {
-    const romUrl = await romUrlForTag(game, tag);
-    startEmulator(id, game, tag, romUrl);
+    const [romUrl, cloudSave] = await Promise.all([
+      romUrlForTag(game, tag),
+      downloadCloudSave(id, tag).catch(error => {
+        console.warn(error);
+        return null;
+      })
+    ]);
+    startEmulator(id, game, tag, romUrl, cloudSave);
   } catch (error) {
     console.error(error);
     fail("No se pudo preparar la partida para este tag NFC.");
   }
 }
 
-function startEmulator(id, game, tag, romUrl) {
+function startEmulator(id, game, tag, romUrl, cloudSave) {
   prepareLoadingScreen(game);
   installPageSaveFlushHandlers();
 
@@ -308,7 +387,7 @@ function startEmulator(id, game, tag, romUrl) {
 
   const revealGame = () => {
     show($("#gameView"));
-    configureAutoSaveFlush();
+    configureAutoSaveFlush(id, tag, cloudSave);
   };
   window.EJS_ready = revealGame;
   window.EJS_onGameStart = revealGame;

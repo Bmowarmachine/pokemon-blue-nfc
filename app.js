@@ -3,6 +3,7 @@ const EMULATOR_DATA_URL = "https://cdn.emulatorjs.org/stable/data/";
 const SAVE_FLUSH_INTERVAL_SECONDS = 5;
 const SAVE_FLUSH_INTERVAL_MS = SAVE_FLUSH_INTERVAL_SECONDS * 1000;
 const SAVE_FLUSH_RETRY_LIMIT = 40;
+const DEFAULT_ROM_EXTENSION = "gb";
 
 const views = [
   $("#catalogView"),
@@ -42,17 +43,66 @@ function gameUrl(id) {
   return url.toString();
 }
 
-function gameIdFor(id, game) {
-  const configuredId = Number(game.gameId);
-  if (Number.isInteger(configuredId) && configuredId > 0) {
-    return configuredId;
-  }
-
+function hashToPositive(value) {
   let hash = 0;
-  for (const char of id) {
+  for (const char of value) {
     hash = ((hash << 5) - hash + char.charCodeAt(0)) | 0;
   }
   return Math.abs(hash) || 1;
+}
+
+function currentTag() {
+  const params = new URLSearchParams(location.search);
+  const rawTag = params.get("tag") || params.get("profile") || params.get("slot");
+  if (!rawTag) return "";
+
+  return rawTag
+    .toLowerCase()
+    .replace(/[^a-z0-9_-]+/g, "-")
+    .replace(/^-+|-+$/g, "")
+    .slice(0, 40);
+}
+
+function romExtension(romUrl) {
+  try {
+    const path = new URL(romUrl, location.href).pathname;
+    const extension = path.split(".").pop();
+    return extension && extension.length <= 5 ? extension.toLowerCase() : DEFAULT_ROM_EXTENSION;
+  } catch (error) {
+    return DEFAULT_ROM_EXTENSION;
+  }
+}
+
+function saveNameFor(id, game, tag) {
+  const baseName = safeText(game.saveName || id)
+    .replace(/\.[a-z0-9]{1,5}$/i, "")
+    .replace(/[^a-z0-9_-]+/gi, "-")
+    .replace(/^-+|-+$/g, "")
+    .toLowerCase() || id;
+
+  if (!tag) return game.saveName || id;
+  return `${baseName}--${tag}.${romExtension(game.romUrl)}`;
+}
+
+function gameIdFor(id, game, tag) {
+  const configuredId = Number(game.gameId);
+  if (!tag && Number.isInteger(configuredId) && configuredId > 0) {
+    return configuredId;
+  }
+
+  const baseId = Number.isInteger(configuredId) && configuredId > 0 ? configuredId : id;
+  return hashToPositive(`${baseId}:${id}:${tag || "default"}`);
+}
+
+async function romUrlForTag(game, tag) {
+  if (!tag) return game.romUrl;
+
+  const response = await fetch(game.romUrl, { cache: "force-cache" });
+  if (!response.ok) {
+    throw new Error("No se pudo preparar la ROM para este tag NFC.");
+  }
+
+  return URL.createObjectURL(await response.blob());
 }
 
 function warmGameCache(games) {
@@ -183,20 +233,29 @@ function prepareLoadingScreen(game) {
   show($("#loadingView"));
 }
 
-function queueEmulatorStart(id, game) {
+async function queueEmulatorStart(id, game) {
+  const tag = currentTag();
+  prepareLoadingScreen(game);
   serviceWorkerReady.then(() => warmGameCache({ [id]: game }));
-  startEmulator(id, game);
+
+  try {
+    const romUrl = await romUrlForTag(game, tag);
+    startEmulator(id, game, tag, romUrl);
+  } catch (error) {
+    console.error(error);
+    fail("No se pudo preparar la partida para este tag NFC.");
+  }
 }
 
-function startEmulator(id, game) {
+function startEmulator(id, game, tag, romUrl) {
   prepareLoadingScreen(game);
   installPageSaveFlushHandlers();
 
   window.EJS_player = "#game";
   window.EJS_core = game.core;
-  window.EJS_gameUrl = game.romUrl;
-  window.EJS_gameName = game.saveName || id;
-  window.EJS_gameID = gameIdFor(id, game);
+  window.EJS_gameUrl = romUrl;
+  window.EJS_gameName = saveNameFor(id, game, tag);
+  window.EJS_gameID = gameIdFor(id, game, tag);
   window.EJS_pathtodata = EMULATOR_DATA_URL;
   window.EJS_startOnLoaded = true;
   window.EJS_browserMode = "mobile";

@@ -3,6 +3,15 @@ NFC GAMES — URLs PARA GRABAR EN LOS TAGS
 Pokémon Blue
 https://bmowarmachine.github.io/pokemon-blue-nfc/?game=pokemon-blue
 
+Pokémon Blue - Tag 001
+https://bmowarmachine.github.io/pokemon-blue-nfc/?game=pokemon-blue&tag=tag-001
+
+Pokémon Blue - Tag 002
+https://bmowarmachine.github.io/pokemon-blue-nfc/?game=pokemon-blue&tag=tag-002
+
+Pokémon Blue - Tag 003
+https://bmowarmachine.github.io/pokemon-blue-nfc/?game=pokemon-blue&tag=tag-003
+
 Zelda
 https://bmowarmachine.github.io/pokemon-blue-nfc/?game=zelda
 
@@ -12,3 +21,5 @@ https://bmowarmachine.github.io/pokemon-blue-nfc/?game=mario
 IMPORTANTE:
 El tag NFC solo necesita la URL.
 El archivo del juego se obtiene desde la fuente definida en games.js.
+Cada valor de "tag" crea una partida independiente en el navegador del celular.
+La partida no se guarda dentro del chip NFC ni se comparte automaticamente entre celulares.

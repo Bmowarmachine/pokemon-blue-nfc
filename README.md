@@ -53,7 +53,19 @@ romUrl: "./roms/mi-juego.gb"
 
 Usa solamente archivos de juego que tengas derecho a distribuir.
 
-Usa un `gameId` distinto para cada juego. Ese número separa la caché y las partidas guardadas de cada tag NFC.
+Usa un `gameId` distinto para cada juego. Ese número separa la caché y las partidas guardadas de juegos diferentes.
+
+## Varios tags para el mismo juego
+
+Agrega `&tag=ID-DEL-TAG` a la URL para crear una partida independiente para cada tag NFC:
+
+- Tag 001: `https://bmowarmachine.github.io/pokemon-blue-nfc/?game=pokemon-blue&tag=tag-001`
+- Tag 002: `https://bmowarmachine.github.io/pokemon-blue-nfc/?game=pokemon-blue&tag=tag-002`
+- Tag 003: `https://bmowarmachine.github.io/pokemon-blue-nfc/?game=pokemon-blue&tag=tag-003`
+
+Cada ID funciona como una carpeta logica de guardado. Usa siempre una ID diferente y conserva exactamente la misma URL al volver a grabar o reemplazar un tag.
+
+La partida se almacena en el navegador del celular, no dentro del chip NFC. Por eso, el mismo tag conserva su partida al abrirse de nuevo en el mismo celular y navegador. En otro celular comenzara con el almacenamiento propio de ese dispositivo; para compartir partidas entre celulares se necesita un servicio de sincronizacion en la nube.
 
 ## Guardar partida
 
@@ -69,6 +81,8 @@ En el primer arranque el navegador todavía debe descargar el emulador y la ROM.
 3. En una app para escribir NFC, crea un registro URL/URI.
 4. Graba esa URL en el tag.
 5. Al acercar el tag, el teléfono abrirá directamente ese juego.
+
+Para varios tags del mismo juego, no repitas la URL exacta: cambia solamente el valor de `tag` en cada uno.
 
 ## Compatibilidad
 

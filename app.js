@@ -133,7 +133,7 @@ function showSaveStatus(message = "Partida guardada") {
   clearTimeout(saveStatusTimer);
   saveStatusTimer = setTimeout(() => {
     status.hidden = true;
-  }, 2400);
+  }, 1800);
 }
 
 function cloudSavePath(id, tag) {

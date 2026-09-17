@@ -90,8 +90,9 @@ async function loadRepositoryData() {
 }
 
 async function commitFiles(files, message) {
-  const refPath = `/repos/${REPO_OWNER}/${REPO_NAME}/git/ref/heads/${REPO_BRANCH}`;
-  const ref = await github(refPath);
+  const readRefPath = `/repos/${REPO_OWNER}/${REPO_NAME}/git/ref/heads/${REPO_BRANCH}`;
+  const updateRefPath = `/repos/${REPO_OWNER}/${REPO_NAME}/git/refs/heads/${REPO_BRANCH}`;
+  const ref = await github(readRefPath);
   const baseCommit = await github(`/repos/${REPO_OWNER}/${REPO_NAME}/git/commits/${ref.object.sha}`);
   const blobs = await Promise.all(files.map(file => github(`/repos/${REPO_OWNER}/${REPO_NAME}/git/blobs`, {
     method: "POST",
@@ -108,7 +109,7 @@ async function commitFiles(files, message) {
     method: "POST",
     body: JSON.stringify({ message, tree: tree.sha, parents: [ref.object.sha] })
   });
-  await github(refPath, { method: "PATCH", body: JSON.stringify({ sha: commit.sha, force: false }) });
+  await github(updateRefPath, { method: "PATCH", body: JSON.stringify({ sha: commit.sha, force: false }) });
   return commit;
 }
 
